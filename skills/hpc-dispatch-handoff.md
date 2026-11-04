@@ -1,6 +1,6 @@
 ---
 name: hpc-dispatch-handoff
-description: Run this server's heavy kernels (getdist chain analysis with on-node chain download, camb LCDM spectra) on ALCF Polaris or NERSC Perlmutter through the hep-genesis IRI engine - client-side pack export (hosted) or server-side set_dispatch (own machine)
+description: Run this server's heavy kernels (Planck map download + downgrade, pseudo-C_ell from maps, getdist chain analysis with on-node chain download, camb LCDM spectra) on ALCF Polaris or NERSC Perlmutter through the hep-genesis IRI engine - client-side pack export (hosted) or server-side set_dispatch (own machine)
 ---
 
 # HPC dispatch handoff
@@ -35,6 +35,13 @@ convention matched by the hep-genesis harness.
 |---|---|---|---|---|
 | `analyze_chain` | `chains.kernels.analyze_chain_kernel` | numpy, scipy, getdist | 900 s | `analyze_chain` |
 | `camb_lcdm` | `spectra.kernels.camb_lcdm_kernel` | numpy, camb | 300 s | `compute_lcdm_theory_spectrum` |
+| `prepare_cmb_map` | `maps.kernels.prepare_map_kernel` | numpy, healpy | 1800 s | `fetch_cmb_map` |
+| `measure_cmb_power_spectrum` | `maps.kernels.measure_power_spectrum_kernel` | numpy, healpy | 900 s | `measure_cmb_power_spectrum` |
+
+Map kernels: on a node pass `map_spec={"component": "smica_nosz", "split": "hm1", "nside": 1024,
+"mask": "common_int"}` (and `map_spec2` with `"split": "hm2"` for the cross) instead of
+local paths. The node downloads the 201 MB IRSA files with resumable range requests and
+downgrades them in the job directory. Sanity check: first peak ell ~ 225, D_ell ~ 5706 muK^2.
 
 Example (client-side): `run_pack_kernel(pack=<saved>/tools,
 function="chains.kernels.analyze_chain_kernel", args={"chain": "planck_pr3",

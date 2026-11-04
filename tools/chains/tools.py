@@ -1,5 +1,10 @@
-"""MCMC chain tools: fetch a public chain, getdist marginal stats (heavy, dispatchable),
-triangle plots, and a whisker comparison of H0 / S8 / Om / ns / sigma8 across experiments."""
+"""TIER-3 (COMPARISON ONLY) tools: published MCMC chains and parameter constraints.
+
+Fetch a public chain, getdist marginal stats (heavy, dispatchable), triangle plots, and a
+whisker comparison of H0 / S8 / Om / ns / sigma8 across experiments. These are published
+inference products: use them only to compare with your own analysis of tier-1 maps /
+tier-2 bandpowers, never as measurements or priors.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +15,7 @@ from typing import Annotated, Literal
 import numpy as np
 from pydantic import Field, validate_call
 
-from ..common import BUNDLED_DATA, ArtifactResult, data_cache_dir, fetch_file, mpl, ok, resolve_outdir, save_fig
+from ..common import BUNDLED_DATA, ArtifactResult, data_cache_dir, fetch_file, mpl, ok, resolve_outdir, save_fig, tier
 from . import kernels
 from .published import PUBLISHED
 
@@ -43,6 +48,7 @@ def _chain_root(chain: str) -> Path:
     return kernels.extract_chain(archive, cfg["member_prefix"], cfg["root"], dest)
 
 
+@tier(3)
 @validate_call
 def fetch_cmb_chain(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the chain summary JSON.")],
@@ -50,7 +56,7 @@ def fetch_cmb_chain(
                                               "(65 MB zip); act_dr6_lite / p_act_lite = ACT DR6 LCDM "
                                               "(5-7 MB).")] = "planck_pr3",
 ) -> ArtifactResult:
-    """Download and extract ONE public MCMC chain (never the 11 GB Planck grid).
+    """TIER 3, comparison only: download and extract ONE published MCMC chain (never the 11 GB grid).
 
     Returns the getdist chain root path (pass to analyze_chain / plot_triangle) and the
     parameter list. First call downloads into the cache; later calls are instant.
@@ -69,6 +75,7 @@ def fetch_cmb_chain(
               n_samples=int(s.numrows), params=names[:60], source_url=summ["source_url"])
 
 
+@tier(3)
 @validate_call
 def analyze_chain(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for chain_stats JSON/CSV.")],
@@ -78,7 +85,10 @@ def analyze_chain(
     ignore_rows: Annotated[float | None, Field(ge=0, lt=1, description="Burn-in fraction; default per chain "
                                                                        "(Planck 0: pre-removed; ACT 0.3).")] = None,
 ) -> ArtifactResult:
-    """getdist marginal statistics (mean, std, 68/95% limits) for a public CMB chain.
+    """TIER 3, comparison only: getdist marginal statistics (mean, std, 68/95%) of a PUBLISHED chain.
+
+    Use only to compare against your own fit of tier-1/2 data; never feed these numbers into
+    a fit as a measurement or prior.
 
     Heavy: downloads/extracts the chain on first use. With set_dispatch('polaris'|
     'perlmutter') it runs as one facility job (the node downloads the archive itself).
@@ -119,13 +129,14 @@ def analyze_chain(
 analyze_chain.weight = "heavy"
 
 
+@tier(3)
 @validate_call
 def plot_triangle(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the PNG.")],
     chains: Annotated[list[Chain], Field(min_length=1, max_length=3, description="1-3 chains to overlay.")] = ["planck_pr3"],  # noqa: B006
     params: Annotated[list[str], Field(min_length=2, max_length=8, description="Short names (see analyze_chain).")] = ["H0", "omegam", "sigma8", "ns"],  # noqa: B006
 ) -> ArtifactResult:
-    """getdist triangle plot (1D marginals + 68/95% 2D contours) for one or more CMB chains.
+    """TIER 3, comparison only: getdist triangle plot (68/95% contours) of published CMB chains.
 
     Overlay planck_pr3 with act_dr6_lite to show the Planck-vs-ACT LCDM agreement.
     """
@@ -155,8 +166,9 @@ def plot_triangle(
               params=params)
 
 
+@tier(3)
 @validate_call
-def compare_parameter_constraints(
+def compare_with_published_constraints(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the PNG + CSV.")],
     params: Annotated[list[Literal["H0", "S8", "omegam", "ns", "sigma8"]],
                       Field(min_length=1, description="Parameters for whisker panels.")] = ["H0", "S8", "omegam", "ns"],  # noqa: B006
@@ -166,7 +178,10 @@ def compare_parameter_constraints(
                                                          "(Planck, SPT-3G D1, ACT DR6, CMB-SPA, SH0ES, DES, KiDS).")] = True,
     reference: Annotated[str, Field(description="Entry to measure tensions against (n-sigma, Gaussian).")] = "Planck 2018 (TT,TE,EE+lowE+lensing)",
 ) -> ArtifactResult:
-    """Whisker plot of H0, S8, Omega_m, n_s (sigma8) across CMB experiments and late-time probes.
+    """TIER 3, comparison only: whisker plot of PUBLISHED H0, S8, Omega_m, n_s (sigma8) constraints.
+
+    Every entry is a published inference product (chains or tables) across CMB experiments
+    and late-time probes - for the final "compare with published" step of an analysis.
 
     Every point is either a getdist analysis of a public chain (marked 'chain') or a
     published table value with its citation. Reports the Gaussian tension of each entry vs
@@ -239,4 +254,4 @@ def bundled_planck_margestats(params: list[str]) -> dict:
     return out
 
 
-__all__ = ["fetch_cmb_chain", "analyze_chain", "plot_triangle", "compare_parameter_constraints"]
+__all__ = ["fetch_cmb_chain", "analyze_chain", "plot_triangle", "compare_with_published_constraints"]

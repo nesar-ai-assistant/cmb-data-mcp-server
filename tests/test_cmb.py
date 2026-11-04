@@ -69,7 +69,7 @@ def test_bundled_margestats_sanity():
 
 
 def test_published_whisker(tmp_path):
-    r = C.compare_parameter_constraints(str(tmp_path))
+    r = C.compare_with_published_constraints(str(tmp_path))
     t = r.metadata["tensions_vs_reference"]
     assert 4.5 < t["SH0ES (Cepheid-SN Ia)"]["H0"] < 5.2
     assert all(e["citation"] for e in PUBLISHED.values())
@@ -78,7 +78,7 @@ def test_published_whisker(tmp_path):
 def test_kernels_are_pure():
     import ast
     import pathlib
-    for f in ("tools/chains/kernels.py", "tools/spectra/kernels.py"):
+    for f in ("tools/chains/kernels.py", "tools/spectra/kernels.py", "tools/maps/kernels.py", "tools/maps/io.py"):
         tree = ast.parse(pathlib.Path(f).read_text())
         mods = {n.names[0].name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import)}
         mods |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}

@@ -37,4 +37,16 @@ def read_theory_csv(path: str) -> dict:
 def get_theory(theory_file: str | None) -> tuple[dict, str]:
     if theory_file:
         return read_theory_csv(theory_file), f"theory CSV {Path(theory_file).name}"
-    return theory_dl(), "Planck 2018 best-fit LCDM (PLA minimum-theory R3.01)"
+    return theory_dl(), DEFAULT_THEORY_LABEL
+
+
+DEFAULT_THEORY_LABEL = ("Planck 2018 best-fit LCDM (PLA minimum-theory R3.01; TIER-3 published best fit, "
+                        "used only as a reference model)")
+
+
+def theory_tier_note(theory_file: str | None) -> str:
+    """Label which tier the reference model came from (tier separation rule)."""
+    if theory_file:
+        return "user-supplied theory CSV (model computation from your own parameters)"
+    return ("default reference model = Planck 2018 published best fit (tier 3, comparison only). For your own "
+            "analysis pass theory_file from compute_lcdm_theory_spectrum(params=...).")

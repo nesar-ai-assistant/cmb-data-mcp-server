@@ -1,9 +1,13 @@
 ---
 name: h0-s8-tension-whisker
-description: Build the H0 / S8 / Omega_m / n_s whisker plot across Planck, ACT, SPT-3G, CMB-SPA, SH0ES, DES Y3 and KiDS from public chains + cited tables and quantify the Hubble and S8 tensions in sigma
+description: TIER 3 (comparison only) - build the H0 / S8 / Omega_m / n_s whisker plot across Planck, ACT, SPT-3G, CMB-SPA, SH0ES, DES Y3 and KiDS from public chains + cited tables and quantify the Hubble and S8 tensions in sigma
 ---
 
-# H0 and S8 tension whisker
+# H0 and S8 tension whisker (TIER 3: comparison only)
+
+Every number here is a published inference product (chains, cited tables). Use this recipe
+to put YOUR tier-1/2 results (e.g. from `planck-map-to-power-spectrum` or a fit to the
+bandpowers) in context. Never use these constraints as measurements or priors in a fit.
 
 Use one `output_dir`.
 
@@ -14,7 +18,7 @@ Use one `output_dir`.
 (Omega_m derived from ombh2+omch2+0.06 eV nu; S8 from sigma8).
 
 ## 2. Whisker
-`compare_parameter_constraints(output_dir, params=["H0","S8","omegam","ns"],
+`compare_with_published_constraints(output_dir, params=["H0","S8","omegam","ns"],
 chains=["planck_pr3","act_dr6_lite"], include_published=True)`.
 Chain rows are squares, published rows circles; the grey band is the reference (Planck).
 

@@ -1,7 +1,7 @@
 """Published parameter constraints (mean, 1-sigma) with citations - every number copied from
 the cited paper/table (checked against arXiv HTML / abstracts on 2026-11-04).
 
-Used by compare_parameter_constraints when a chain is not requested/available.
+Used by compare_with_published_constraints when a chain is not requested/available.
 """
 
 PUBLISHED: dict[str, dict] = {

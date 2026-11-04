@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cmb-data-mcp-server"
 version = "0.1.0"
-description = "MCP server for public CMB power spectra (Planck PR3, ACT DR6, SPT-3G), lensing bandpowers and parameter chains"
+description = "MCP server for public CMB data by tier: Planck PR3 maps (tier 1), Planck/ACT/SPT bandpowers + lensing (tier 2), published chains (tier 3, comparison)"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,11 +16,13 @@ dependencies = [
     "matplotlib>=3.8",
     "getdist>=1.5",
     "sacc>=0.12",
+    "healpy>=1.16",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest", "anyio", "ruff"]
-theory = ["camb>=1.5"]  # optional: compute_lcdm_theory_spectrum with custom params (lazy import)
+theory = ["camb>=1.5"]
+namaster = ["pymaster>=2"]  # optional: measure_cmb_power_spectrum(method="namaster"); no macOS x86_64 wheel  # optional: compute_lcdm_theory_spectrum with custom params (lazy import)
 # hpc = ["hep-genesis[iri]"]  # server-side dispatch: pip install -e <hep-genesis-agent>/backend[iri]
 
 [tool.mcp-server]
@@ -31,6 +33,7 @@ instructions_file = "mcp_server/INSTRUCTIONS.md"
 tool_modules = [
     "tools.meta",
     "tools.spectra.tools",
+    "tools.maps.tools",
     "tools.chains.tools",
     "mcp_server.dispatch",
 ]

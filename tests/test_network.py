@@ -34,3 +34,15 @@ def test_act_chain_and_triangle(tmp_path):
     assert 65 < st["H0"]["mean"] < 67.5 and 0.30 < st["omegam"]["mean"] < 0.36
     r = C.plot_triangle(str(tmp_path), ["planck_pr3", "act_dr6_lite"], ["H0", "omegam"])
     assert r.files[0].endswith(".png")
+
+
+def test_planck_pr3_map_urls_head_and_header():
+    """Tier-1 maps: HEAD sizes match the registry; FITS header (range fetch) is HEALPix nside 2048."""
+    from tools.maps import io as mio
+
+    for comp in ("smica_nosz", "smica"):
+        assert mio.content_length(mio.map_url(comp)) == mio.MAPS[comp]["bytes_full"]
+    assert mio.content_length(mio.map_url("smica_nosz", "hm1")) == mio.MAPS["smica_nosz"]["bytes_hm"]
+    assert mio.content_length(mio.mask_url("common_int")) == mio.MASKS["common_int"]["bytes"]
+    cards = " ".join(mio.fits_header_cards(mio.map_url("smica_nosz")))
+    assert "HEALPIX" in cards and "2048" in cards and "I_STOKES" in cards

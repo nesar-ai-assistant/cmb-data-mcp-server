@@ -1,0 +1,17 @@
+{
+ "nside": 1024,
+ "lmax": 2000,
+ "fsky_w2": 0.7522368373353223,
+ "fsky_w4": 0.7348967830879304,
+ "fsky_binary": 0.7789537906646729,
+ "apod_deg": 1.0,
+ "beam_fwhm_arcmin": 5.0,
+ "method": "anafast",
+ "estimator": "cross (map1 x map2)",
+ "n_bins": 66,
+ "first_peak_ell": 224.83296296296297,
+ "first_peak_D_ell": 5705.611203658435,
+ "spectra": [
+  "TT"
+ ]
+}

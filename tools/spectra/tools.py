@@ -8,9 +8,9 @@ from typing import Annotated, Literal
 import numpy as np
 from pydantic import Field, validate_call
 
-from ..common import ArtifactResult, ok, param_slug, resolve_outdir
+from ..common import ArtifactResult, ok, param_slug, resolve_outdir, tier
 from . import kernels
-from ._shared import get_theory, write_csv
+from ._shared import get_theory, theory_tier_note, write_csv
 from .data import LABELS, binned_theory, load_spectrum, theory_dl
 from .plots import plot_cmb_spectra, plot_lensing_spectrum
 
@@ -30,6 +30,7 @@ DISPATCH_KERNELS = {
 }
 
 
+@tier(2)
 @validate_call
 def fetch_cmb_spectrum(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the tidy CSV.")],
@@ -88,10 +89,11 @@ def _compute_theory(params: dict | None, lmax: int) -> tuple[dict, str]:
         payload["derived"] = {"H0": 67.32, "omegam": 0.3158, "sigma8": 0.8120,
                               "note": "Planck 2018 best-fit (.minimum) values, Table 1 of arXiv:1807.06209"}
         payload["params"] = dict(kernels.PLANCK2018_BESTFIT)
-        return payload, "bundled Planck 2018 best-fit theory (camb not installed)"
+        return payload, "bundled Planck 2018 best-fit theory (camb not installed; TIER-3 published best fit)"
     return kernels.camb_lcdm_kernel(params=params, lmax=lmax), "camb (local)"
 
 
+@tier(2)
 @validate_call
 def compute_lcdm_theory_spectrum(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the theory CSV.")],
@@ -101,9 +103,11 @@ def compute_lcdm_theory_spectrum(
 ) -> ArtifactResult:
     """Compute a lensed LCDM TT/TE/EE/BB + lensing-potential theory spectrum to CSV.
 
-    Uses camb (optional dependency, lazily imported; or a facility node via set_dispatch).
-    Without camb and without params it falls back to the bundled Planck 2018 best-fit
-    theory file (ell<=2508) - say so when reporting. Pass the CSV as theory_file to
+    Tier 2 (model computation): with camb and YOUR parameters this is your own model for
+    fitting tier-2 bandpowers. Uses camb (optional dependency, lazily imported; or a facility
+    node via set_dispatch). Without camb and without params it falls back to the bundled
+    Planck 2018 published best-fit theory file (ell<=2508) - that is a TIER-3 product
+    (comparison only), flagged in metadata.model_tier; say so when reporting. Pass the CSV as theory_file to
     plot_cmb_spectra / compute_cmb_residuals / plot_lensing_spectrum.
     """
     out = resolve_outdir(output_dir)
@@ -117,12 +121,14 @@ def compute_lcdm_theory_spectrum(
     return ok(f"LCDM theory to ell={len(payload['ell']) - 1} from {source}: H0={d['H0']:.2f}, "
               f"Om={d['omegam']:.4f}, sigma8={d['sigma8']:.4f}.", [path, out / f"{stem}.json"],
               source=source, derived=d, lmax=len(payload["ell"]) - 1,
+              model_tier=3 if source.startswith("bundled") else "model computation (camb, your parameters)",
               columns="ell, TT/TE/EE/BB D_ell [muK^2], PP [L(L+1)]^2 C^phiphi/2pi")
 
 
 compute_lcdm_theory_spectrum.weight = "heavy"
 
 
+@tier(2)
 @validate_call
 def compute_cmb_residuals(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the residual CSV.")],
@@ -175,7 +181,7 @@ def compute_cmb_residuals(
     return ok(f"{LABELS.get(dataset, dataset)} {spectrum} vs {tsrc}: chi2={chi2:.1f} for N={n} "
               f"(chi2/N={chi2 / n:.2f}, PTE={pte:.3f}) using {method}.", [path],
               dataset=dataset, spectrum=spectrum, chi2=chi2, n_bandpowers=n, chi2_per_n=chi2 / n, pte=pte,
-              method=method, theory=tsrc, max_abs_pull=float(np.max(np.abs(resid[m] / sig[m]))),
+              method=method, theory=tsrc, theory_provenance=theory_tier_note(theory_file), max_abs_pull=float(np.max(np.abs(resid[m] / sig[m]))),
               caveat=("Theory has fixed nuisance/calibration (A_act=P_act=1 for ACT); not a likelihood "
                       "evaluation - Phase 2 adds HiLLiPoP/LoLLiPoP/candl/act_dr6_lenslike."))
 
