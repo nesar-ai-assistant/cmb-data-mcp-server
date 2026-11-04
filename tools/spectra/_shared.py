@@ -40,13 +40,13 @@ def get_theory(theory_file: str | None) -> tuple[dict, str]:
     return theory_dl(), DEFAULT_THEORY_LABEL
 
 
-DEFAULT_THEORY_LABEL = ("Planck 2018 best-fit LCDM (PLA minimum-theory R3.01; TIER-3 published best fit, "
+DEFAULT_THEORY_LABEL = ("Planck 2018 best-fit LCDM (PLA minimum-theory R3.01; published best fit, "
                         "used only as a reference model)")
 
 
-def theory_tier_note(theory_file: str | None) -> str:
-    """Label which tier the reference model came from (tier separation rule)."""
+def theory_provenance_note(theory_file: str | None) -> str:
+    """Label where the reference model came from (own model vs published result)."""
     if theory_file:
         return "user-supplied theory CSV (model computation from your own parameters)"
-    return ("default reference model = Planck 2018 published best fit (tier 3, comparison only). For your own "
+    return ("default reference model = Planck 2018 published best fit (published result, for comparison only). For your own "
             "analysis pass theory_file from compute_lcdm_theory_spectrum(params=...).")

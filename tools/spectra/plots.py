@@ -8,7 +8,7 @@ import numpy as np
 from pydantic import Field, validate_call
 
 from ..common import ArtifactResult, mpl, ok, resolve_outdir, save_fig
-from ..common import tier
+from ..common import data_kind
 from ._shared import get_theory
 from .data import LABELS, binned_theory, load_spectrum
 
@@ -22,7 +22,7 @@ YLABEL = {"TT": r"$\mathcal{D}_\ell^{TT}\ [\mu{\rm K}^2]$", "TE": r"$\mathcal{D}
 ExpName = Literal["planck_pr3", "act_dr6", "spt3g_d1", "spt3g_2018"]
 
 
-@tier(2)
+@data_kind("summary_statistic")
 @validate_call
 def plot_cmb_spectra(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the PNG.")],
@@ -85,7 +85,7 @@ def plot_cmb_spectra(
               theory=tsrc if show_theory else None)
 
 
-@tier(2)
+@data_kind("summary_statistic")
 @validate_call
 def plot_lensing_spectrum(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the PNG.")],

@@ -1,12 +1,12 @@
 ---
 name: h0-s8-tension-whisker
-description: TIER 3 (comparison only) - build the H0 / S8 / Omega_m / n_s whisker plot across Planck, ACT, SPT-3G, CMB-SPA, SH0ES, DES Y3 and KiDS from public chains + cited tables and quantify the Hubble and S8 tensions in sigma
+description: Published results (for comparison only) - build the H0 / S8 / Omega_m / n_s whisker plot across Planck, ACT, SPT-3G, CMB-SPA, SH0ES, DES Y3 and KiDS from public chains + cited tables and quantify the Hubble and S8 tensions in sigma
 ---
 
-# H0 and S8 tension whisker (TIER 3: comparison only)
+# H0 and S8 tension whisker (published results, for comparison only)
 
 Every number here is a published inference product (chains, cited tables). Use this recipe
-to put YOUR tier-1/2 results (e.g. from `planck-map-to-power-spectrum` or a fit to the
+to put YOUR own results from maps / bandpowers (e.g. from `planck-map-to-power-spectrum` or a fit to the
 bandpowers) in context. Never use these constraints as measurements or priors in a fit.
 
 Use one `output_dir`.

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cmb-data-mcp-server"
 version = "0.1.0"
-description = "MCP server for public CMB data by tier: Planck PR3 maps (tier 1), Planck/ACT/SPT bandpowers + lensing (tier 2), published chains (tier 3, comparison)"
+description = "MCP server for public CMB data: Planck PR3 component-separated maps, Planck/ACT/SPT bandpowers + lensing, published chains (comparison only)"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

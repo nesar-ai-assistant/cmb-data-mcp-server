@@ -6,9 +6,9 @@ into the data cache) or "remote-query" (live service). Every URL below was
 downloaded (or for the >200 MB maps, HEAD + range-fetched and the defaults fully
 downloaded) during development (2026-11-04).
 
-products are split by DATA TIER (see docs/CONVENTIONS.md):
-tier1 = maps, tier2 = bandpowers + covariances, tier3 = published chains / best-fit theory
-(comparison only).
+products are split by kind of data (see docs/CONVENTIONS.md):
+catalog = component-separated CMB maps, summary_statistic = bandpowers + covariances,
+published_result = published chains / best-fit theory (comparison only).
 """
 
 PLA = "https://irsa.ipac.caltech.edu/data/Planck/release_3/ancillary-data/cosmoparams/"
@@ -27,9 +27,9 @@ IRSA_LENS = "https://irsa.ipac.caltech.edu/data/Planck/release_3/all-sky-maps/ma
 DATASETS: dict[str, dict] = {
     "planck_pr3_maps": {
         "title": "Planck 2018 (PR3) component-separated CMB maps (SMICA, SMICA-noSZ, Commander) + common masks",
-        "products": {"tier1": ["SMICA-noSZ T map (full, hm1, hm2)", "SMICA I/Q/U map (full, hm1, hm2)",
+        "products": {"catalog": ["SMICA-noSZ T map (full, hm1, hm2)", "SMICA I/Q/U map (full, hm1, hm2)",
                                "Commander I/Q/U map (full, hm1, hm2)", "common temperature / polarisation masks"],
-                     "tier2": ["pseudo-C_ell TT (EE/TE/BB) measured from the maps by measure_cmb_power_spectrum"]},
+                     "summary_statistic": ["pseudo-C_ell TT (EE/TE/BB) measured from the maps by measure_cmb_power_spectrum"]},
         "access": "download on demand (IRSA, resumable parallel range requests), then ud_grade 2048 -> "
                   "nside 128-1024 and cache the downgraded map; never bulk. Sizes: smica_nosz 403 MB full / "
                   "201 MB per half-mission, smica 2.0 GB, commander 1.6 GB, each mask 201 MB.",
@@ -52,8 +52,8 @@ DATASETS: dict[str, dict] = {
     "planck_pr3": {
         "title": "Planck 2018 (PR3) CMB power spectra TT/TE/EE (+ low-ell BB) and the "
                  "base_plikHM_TTTEEE_lowl_lowE_lensing best-fit theory spectrum",
-        "products": {"tier2": ["TT", "TE", "EE", "BB (low-ell, ell<30)"],
-                     "tier3": ["base_plikHM_TTTEEE_lowl_lowE_lensing best-fit theory TT/TE/EE/BB/PP (comparison only)"]},
+        "products": {"summary_statistic": ["TT", "TE", "EE", "BB (low-ell, ell<30)"],
+                     "published_result": ["base_plikHM_TTTEEE_lowl_lowE_lensing best-fit theory TT/TE/EE/BB/PP (comparison only)"]},
         "access": "bundled (binned spectra + best-fit theory + low-ell BB); download (unbinned full spectra)",
         "units": "D_ell = ell(ell+1)C_ell/2pi in muK^2; theory PP column = [L(L+1)]^2 C_L^phiphi/2pi",
         "multipoles": "TT 2-2508, TE/EE 2-1996 (full); binned TT 30-2500, TE/EE 30-2000 (low-ell <30 unbinned)",
@@ -74,7 +74,7 @@ DATASETS: dict[str, dict] = {
     },
     "act_dr6": {
         "title": "ACT DR6 CMB-only (ACT-lite) foreground-marginalised TT/TE/EE bandpowers",
-        "products": {"tier2": ["TT", "TE", "EE", "full 135x135 covariance", "bandpower window functions"]},
+        "products": {"summary_statistic": ["TT", "TE", "EE", "full 135x135 covariance", "bandpower window functions"]},
         "access": "download (287 kB sacc tarball from LAMBDA)",
         "units": "D_ell in muK^2 (CMB-only, foregrounds marginalised), ell 600-6500 in Delta-ell=50 bins",
         "urls": [ACT_SACC,
@@ -87,7 +87,7 @@ DATASETS: dict[str, dict] = {
     },
     "spt3g_d1": {
         "title": "SPT-3G D1 (2019+2020 Main field) minimum-variance foreground-cleaned TT/TE/EE bandpowers",
-        "products": {"tier2": ["TT", "TE", "EE"]},
+        "products": {"summary_statistic": ["TT", "TE", "EE"]},
         "access": "bundled",
         "units": "D_ell in muK^2; TT 400-3000, TE/EE 400-4000, Delta-ell=50",
         "urls": ["https://pole.uchicago.edu/public/data/camphuis25/spt3gd1_mv_cleaned_bandpowers.zip",
@@ -99,7 +99,7 @@ DATASETS: dict[str, dict] = {
     },
     "spt3g_2018": {
         "title": "SPT-3G 2018 TT/TE/EE minimum-variance bandpowers",
-        "products": {"tier2": ["TT", "TE", "EE"]},
+        "products": {"summary_statistic": ["TT", "TE", "EE"]},
         "access": "bundled",
         "units": "D_ell in muK^2; TT 750-3000, TE/EE 300-3000",
         "urls": ["https://pole.uchicago.edu/public/data/balkenhol22/SPT3G_2018_TTTEEE_MV_bdp.txt"],
@@ -109,7 +109,7 @@ DATASETS: dict[str, dict] = {
     },
     "planck_pr3_lensing": {
         "title": "Planck 2018 lensing-potential bandpowers (conservative 8<=L<=400, CMB-marginalised)",
-        "products": {"tier2": ["PP", "9x9 covariance"]},
+        "products": {"summary_statistic": ["PP", "9x9 covariance"]},
         "access": "bundled",
         "units": "[L(L+1)]^2 C_L^phiphi / 2pi (dimensionless)",
         "urls": [COBAYA_LENS + "smicadx12_Dec5_ftl_mv2_ndclpp_p_teb_consext8_bandpowers.dat",
@@ -119,7 +119,7 @@ DATASETS: dict[str, dict] = {
     },
     "act_dr6_lensing": {
         "title": "ACT DR6 lensing convergence bandpowers (MV, profile-hardened; baseline 40<=L<=763)",
-        "products": {"tier2": ["PP (as C_L^kk)", "18x18 CMB-marginalised covariance", "bin edges"]},
+        "products": {"summary_statistic": ["PP (as C_L^kk)", "18x18 CMB-marginalised covariance", "bin edges"]},
         "access": "bundled (bandpowers/cov extracted from the 361 MB LAMBDA likelihood tarball)",
         "units": "file: C_L^kk; tools convert to [L(L+1)]^2 C_L^phiphi/2pi = 2 C_L^kk / pi",
         "urls": [ACT_LENS_TGZ, "https://github.com/ACTCollaboration/act_dr6_lenslike"],
@@ -130,7 +130,7 @@ DATASETS: dict[str, dict] = {
     },
     "spt3g_d1_lensing": {
         "title": "SPT-3G D1 GMV lensing bandpowers (17 bins, CMB-marginalised covariance)",
-        "products": {"tier2": ["PP (as C_L^kk)", "17x17 covariance", "bandpower windows"]},
+        "products": {"summary_statistic": ["PP (as C_L^kk)", "17x17 covariance", "bandpower windows"]},
         "access": "bundled",
         "units": "file: C_L^kk; tools convert to [L(L+1)]^2 C_L^phiphi/2pi",
         "urls": [SPT_CANDL + "SPT3G_D1_KK_GMV_bdp.txt", SPT_CANDL + "SPT3G_D1_KK_GMV_cov_CMBmarg.txt",
@@ -144,7 +144,7 @@ DATASETS: dict[str, dict] = {
     },
     "planck_pr3_chains": {
         "title": "Planck 2018 base_plikHM_TTTEEE_lowl_lowE_lensing MCMC chains (CosmoMC)",
-        "products": {"tier3": ["posterior chains", "margestats (bundled)"]},
+        "products": {"published_result": ["posterior chains", "margestats (bundled)"]},
         "access": "bundled margestats; download (65 MB PLA zip, single-likelihood family, NOT the 11 GB grid)",
         "urls": [PLA + "COM_CosmoParams_base-plikHM-TTTEEE-lowl-lowE_R3.00.zip"],
         "notes": "Chains are already burn-in-removed (getdist ignore_rows=0). "
@@ -154,7 +154,7 @@ DATASETS: dict[str, dict] = {
     },
     "act_dr6_chains": {
         "title": "ACT DR6 LCDM chains (Cobaya): ACT-lite and P-ACT-lite (CAMB)",
-        "products": {"tier3": ["posterior chains"]},
+        "products": {"published_result": ["posterior chains"]},
         "access": "download (5.5 MB / 7.1 MB tarballs from LAMBDA)",
         "urls": [ACT_CHAINS + "actlite_lcdm_camb.tar.gz", ACT_CHAINS + "p-actlite_lcdm_camb.tar.gz"],
         "notes": "No Omega_m column: derived as (ombh2+omch2+0.06 eV nu)/h^2. LAMBDA lists no burn-in "

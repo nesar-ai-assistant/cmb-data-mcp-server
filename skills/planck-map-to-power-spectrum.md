@@ -1,16 +1,16 @@
 ---
 name: planck-map-to-power-spectrum
-description: Tier 1 -> tier 2 - download the Planck PR3 SMICA-noSZ half-mission maps + common mask, downgrade to nside 1024, plot the map, and measure the TT power spectrum yourself (pseudo-C_ell hm1 x hm2 cross, beam/pixel-window/fsky corrected), then validate it against the released Planck bandpowers
+description: From map to power spectrum - download the Planck PR3 SMICA-noSZ half-mission maps + common mask, downgrade to nside 1024, plot the map, and measure the TT power spectrum yourself (pseudo-C_ell hm1 x hm2 cross, beam/pixel-window/fsky corrected), then validate it against the released Planck bandpowers
 ---
 
-# Planck map -> your own TT power spectrum (tier 1 -> tier 2)
+# Planck map -> your own TT power spectrum
 
 Use one `output_dir`. First run downloads 2 x 201 MB half-mission maps + a 201 MB mask from
 IRSA (~2-3 min each at ~1 MB/s, resumable); the downgraded nside-1024 maps are cached in
 `~/.cache/cosmo-mcp/cmb-data-mcp-server/planck_pr3_maps`, so reruns are instant.
 Both heavy tools dispatch (`set_dispatch("perlmutter")`): the node downloads the maps itself.
 
-## 1. Tier-1 maps
+## 1. Component-separated CMB maps
 ```
 h1 = fetch_cmb_map(output_dir, component="smica_nosz", split="hm1", nside=1024)
 h2 = fetch_cmb_map(output_dir, component="smica_nosz", split="hm2", nside=1024)
@@ -23,7 +23,7 @@ Use smica_nosz (temperature only) unless you need Q/U: `smica` is 2.0 GB, `comma
 `plot_cmb_map(output_dir, h1.metadata["map_file"], h1.metadata["mask_file"])` -> Mollweide PNG,
 galactic plane and point-source holes greyed out, +-300 muK scale.
 
-## 3. Measure the spectrum (tier 1 -> tier 2)
+## 3. Measure the spectrum (from map to power spectrum)
 ```
 measure_cmb_power_spectrum(output_dir, map_file=h1.metadata["map_file"],
     map_file2=h2.metadata["map_file"], mask_file=h1.metadata["mask_file"],
@@ -42,13 +42,13 @@ Cross-spectrum hm1 x hm2: no noise bias. Reference run (2026-11-04, ~50 s on a l
 If your numbers differ from these by more than ~2 %, check the beam (5'), the nside (pixel
 window is applied for the map nside) and that the mask is the common_int one.
 
-## 4. Fit your own spectrum (tier 2)
+## 4. Fit your own spectrum
 Feed the CSV (columns ell_min, ell_max, ell, D_ell_TT, err_TT_cv) to a theory comparison:
 `compute_lcdm_theory_spectrum(output_dir, params={...})` then compare by eye, or with
 `plot_cmb_spectra`. Errors are Knox cosmic-variance only (no noise, no mode coupling), so
 chi2 values from this CSV are indicative. Restrict to 30 < ell < 1500.
 
-## 5. Compare with published (tier 3, comparison only)
+## 5. Compare with published results (for comparison only)
 Only at the end: the Planck 2018 best-fit theory (`plot_cmb_spectra` default curve) or
 `analyze_chain(output_dir, "planck_pr3")`. Do not use them as priors for step 4.
 

@@ -1,9 +1,9 @@
 # CMB Data MCP Server
 
-MCP server for **public CMB data organised by data tier**: Planck PR3 component-separated
-**maps** (tier 1) and your own power spectrum measured from them; Planck PR3 / ACT DR6 /
-SPT-3G **bandpowers with covariances and lensing bandpowers** (tier 2); and **published
-chains / best-fit theory** (tier 3, comparison only). It covers data access, honest chi2
+MCP server for **public CMB data**: Planck PR3 component-separated **CMB maps** and your
+own power spectrum measured from them; Planck PR3 / ACT DR6 / SPT-3G **bandpowers with
+covariances and lensing bandpowers**; and **published chains / best-fit theory** (published
+results, for comparison only). It covers data access, honest chi2
 checks against LCDM, publication-style plots, and cross-experiment comparisons. It is part
 of the cosmo-*-mcp-server family (see `docs/CONVENTIONS.md`).
 
@@ -12,13 +12,15 @@ No compiled likelihoods yet (see the TODO list below).
 ![map](docs/figures/map_smica_nosz_full_n1024_T.png)
 ![TT from map](docs/figures/planck_smica_hm1xhm2_TT_vs_released.png)
 
-## Data tiers
-Tier 1 = maps; tier 2 = summary statistics with covariance (measured from tier 1);
-tier 3 = published inference (chains, best fits), **comparison only**: never used as a
-measurement or prior. The server prefixes every tool description with its tier, and results
-carry `metadata["data_tier"]` (tier 3 also gets a `tier3_notice`).
+## Data products
+Maps & catalogs = component-separated CMB maps; summary statistics = power spectra /
+bandpowers with covariance (including those you measure from the maps); published results =
+published inference (chains, best fits), **comparison only**: never used as a measurement or
+prior. Every tool declares its kind of data (`@data_kind`), results carry
+`metadata["data_kind"]`, and published-result tools are prefixed
+"[Published result - for comparison only]" and get `metadata["comparison_only"]`.
 
-| dataset | tier 1 | tier 2 | tier 3 (comparison only) | access |
+| dataset | Maps & catalogs | Summary statistics | Published results (comparison only) | access |
 |---|---|---|---|---|
 | `planck_pr3_maps` | SMICA-noSZ T, SMICA I/Q/U, Commander I/Q/U (full, hm1, hm2); common T/P masks | pseudo-C_ell TT (EE/TE/BB) measured by `measure_cmb_power_spectrum` | – | download on demand from IRSA (resumable parallel ranges; 201 MB–2.0 GB at nside 2048), ud_graded to nside 128–1024 and cached |
 | `planck_pr3` | – | binned/unbinned TT, TE, EE, low-ell BB | PLA best-fit (minimum) theory spectra | bundled binned + theory; unbinned downloaded |
@@ -32,25 +34,25 @@ carry `metadata["data_tier"]` (tier 3 also gets a `tier3_notice`).
 | `act_dr6_chains` | – | – | ACT-lite / P-ACT chains | download (5–7 MB) |
 
 `compute_lcdm_theory_spectrum(params=...)` with camb is a model computation from *your*
-parameters (tier 2 tool); without camb it falls back to the published Planck best fit and
-flags it `model_tier: 3`.
+parameters (a summary-statistic tool); without camb it falls back to the published Planck best
+fit and flags it `model_source: published_result (comparison only)`.
 
 ## Tools (16 science/meta + 4 dispatch)
 | tool | what it does |
 |---|---|
 | `list_cmb_datasets` / `describe_cmb_dataset` | dataset registry: products, units, verified URLs, citations |
 | `list_cmb_skills` / `load_cmb_skill` | server-side recipes (also exposed as MCP prompts) |
-| **tier 1** | |
+| **Maps** | |
 | `fetch_cmb_map` (heavy) | Planck PR3 SMICA-noSZ / SMICA / Commander map (full or half-mission) + common mask, downloaded once and ud_graded to nside 128–1024 (cached, muK, RING, Galactic). Dispatch kernel `prepare_cmb_map` |
 | `plot_cmb_map` | Mollweide PNG with the mask greyed out, rms in the mask |
-| `measure_cmb_power_spectrum` (heavy) | **tier 1 → 2**: masked pseudo-C_ell (healpy anafast; `method="namaster"` if pymaster is installed) with apodisation, fsky=<w²>, 5′ beam and pixel-window deconvolution, Δℓ=30 PLA binning, Knox errors; auto or hm1×hm2 cross; plots and compares against the released Planck TT. Dispatchable |
-| **tier 2** | |
+| `measure_cmb_power_spectrum` (heavy) | **from map to power spectrum**: masked pseudo-C_ell (healpy anafast; `method="namaster"` if pymaster is installed) with apodisation, fsky=<w²>, 5′ beam and pixel-window deconvolution, Δℓ=30 PLA binning, Knox errors; auto or hm1×hm2 cross; plots and compares against the released Planck TT. Dispatchable |
+| **Summary statistics** | |
 | `fetch_cmb_spectrum(dataset, spectrum, binned)` | TT/TE/EE/BB/PP bandpowers written to a tidy CSV (+ covariance `.npy` when released) |
 | `plot_cmb_spectra` | D_ell with errors, multi-experiment overlay, best-fit LCDM, residual panel |
 | `compute_cmb_residuals` | chi2 / PTE against a theory spectrum. Uses the full covariance and windows for ACT and lensing; diagonal (indicative) for Planck/SPT plotting products |
-| `compute_lcdm_theory_spectrum` (heavy) | camb LCDM spectra from your parameters (optional dependency, lazy import, dispatchable). Falls back to the bundled Planck 2018 best-fit file (tier 3, flagged) |
+| `compute_lcdm_theory_spectrum` (heavy) | camb LCDM spectra from your parameters (optional dependency, lazy import, dispatchable). Falls back to the bundled Planck 2018 best-fit file (published result, flagged) |
 | `plot_lensing_spectrum` | Planck/ACT/SPT [L(L+1)]^2 C_L^phiphi/2pi with LCDM, plus a fitted A_lens per experiment |
-| **tier 3 (comparison only)** | |
+| **Published results (comparison only)** | |
 | `fetch_cmb_chain` | downloads and extracts ONE public chain (Planck 2018 plikHM TTTEEE+lowl+lowE+lensing, 65 MB; ACT DR6 ACT-lite / P-ACT, 5–7 MB) |
 | `analyze_chain` (heavy) | getdist marginal stats (mean, std, 68/95% limits). Dispatch kernel downloads the chain on the node |
 | `plot_triangle` | getdist triangle plot overlaying up to 3 chains |
@@ -88,9 +90,9 @@ Provenance for every bundled file is in `data/README.md`.
 - SH0ES vs Planck H0: 4.9σ. KiDS S8: −3.1σ. DES Y3 S8: −2.6σ.
 
 ## Skills
-`cmb-tour` (tier 1 → 2 → own fit → compare), `planck-map-to-power-spectrum` (tier 1 → 2, new),
+`cmb-tour` (map → power spectrum → own fit → compare), `planck-map-to-power-spectrum` (from map to power spectrum, new),
 `reproduce-planck-tt-spectrum`, `cmb-experiment-comparison`,
-`h0-s8-tension-whisker` (**tier 3, comparison only**), `hpc-dispatch-handoff`.
+`h0-s8-tension-whisker` (**published results, for comparison only**), `hpc-dispatch-handoff`.
 
 ## Install / run
 ```bash

@@ -1,5 +1,5 @@
-"""CMB map tools (TIER 1 data): fetch/downgrade Planck PR3 SMICA/Commander maps + masks,
-mollview plots, and the tier-1 -> tier-2 reduction measure_cmb_power_spectrum."""
+"""CMB map tools: fetch/downgrade Planck PR3 SMICA/Commander component-separated maps + masks,
+mollview plots, and the map -> power spectrum reduction measure_cmb_power_spectrum."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Annotated, Literal
 import numpy as np
 from pydantic import Field, validate_call
 
-from ..common import ArtifactResult, data_cache_dir, mpl, ok, resolve_outdir, save_fig, tier
+from ..common import ArtifactResult, data_kind, data_cache_dir, mpl, ok, resolve_outdir, save_fig
 from . import io as mio
 from . import kernels
 
@@ -57,7 +57,7 @@ def _prepare(component: str, split: str, nside: int, mask: str, polarization: bo
     return dict(kernels.prepare_map_kernel(**args), computed_on="local")
 
 
-@tier(1)
+@data_kind("catalog")
 @validate_call
 def fetch_cmb_map(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the downgraded map/mask FITS + JSON.")],
@@ -71,7 +71,7 @@ def fetch_cmb_map(
                                                                          "(201 MB at nside 2048).")] = "common_int",
     polarization: Annotated[bool, Field(description="Also keep Q/U (smica / commander only).")] = False,
 ) -> ArtifactResult:
-    """Fetch a Planck PR3 component-separated CMB MAP (tier 1) and its common mask, downgraded.
+    """Fetch a Planck PR3 component-separated CMB MAP and its common mask, downgraded.
 
     Use this to start any map-level analysis (own power spectrum, cutouts, cross-correlation).
     The nside-2048 FITS is downloaded ONCE from IRSA with resumable parallel range requests
@@ -108,7 +108,7 @@ def fetch_cmb_map(
 fetch_cmb_map.weight = "heavy"
 
 
-@tier(1)
+@data_kind("catalog")
 @validate_call
 def measure_cmb_power_spectrum(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the binned CSV / npz / JSON.")],
@@ -126,7 +126,7 @@ def measure_cmb_power_spectrum(
     method: Annotated[Literal["anafast", "namaster"], Field(description="anafast pseudo-C_ell / fsky "
                                                                         "(default) or pymaster MASTER if installed.")] = "anafast",
 ) -> ArtifactResult:
-    """Measure the CMB TT (optionally EE/TE/BB) power spectrum FROM A MAP: tier 1 -> tier 2.
+    """Measure the CMB TT (optionally EE/TE/BB) power spectrum FROM A MAP (from map to power spectrum).
 
     Use this for your own spectrum from Planck maps (instead of the released bandpowers).
     Pseudo-C_ell via healpy anafast of the (apodised) masked map, divided by fsky = <w^2>,
@@ -185,7 +185,7 @@ def measure_cmb_power_spectrum(
               f"first peak ell = {meta['first_peak_ell']:.0f}, D_ell = {meta['first_peak_D_ell']:.0f} muK^2. "
               + (f"Vs released Planck TT bandpowers (30<ell<1500): median ratio {cmp['median_ratio']:.3f}, "
                  f"rms deviation {cmp['rms_frac_dev']:.3f}." if cmp else ""),
-              files, csv=str(out / f"{stem}.csv"), computed_on=host, produces_tier=2,
+              files, csv=str(out / f"{stem}.csv"), computed_on=host, produces="summary_statistic",
               comparison_with_planck_tt_bandpowers=cmp, **meta,
               columns="ell_min, ell_max, ell, D_ell_TT[, D_ell_EE, D_ell_BB, D_ell_TE], err_TT_cv (muK^2)",
               caveats="Pseudo-C_ell/fsky is approximate (no mode-coupling inversion); residual foregrounds and "
@@ -196,7 +196,7 @@ measure_cmb_power_spectrum.weight = "heavy"
 
 
 def _plot_vs_planck(csv_path: Path, out: Path, stem: str, meta: dict) -> Path | None:
-    """Measured D_ell^TT vs the released Planck PR3 TT bandpowers (tier 2), with ratio panel."""
+    """Measured D_ell^TT vs the released Planck PR3 TT bandpowers, with ratio panel."""
     from ..spectra.data import load_spectrum
 
     if not csv_path.is_file():
@@ -257,10 +257,10 @@ def _compare_planck_binned(csv_path: Path) -> dict | None:
     m = (rec["ell"][:n] > 30) & (rec["ell"][:n] < 1500)
     return {"median_ratio": float(np.median(ratio[m])), "rms_frac_dev": float(np.sqrt(np.mean((ratio[m] - 1) ** 2))),
             "max_abs_frac_dev": float(np.max(np.abs(ratio[m] - 1))), "n_bins": int(m.sum()),
-            "reference": "Planck PR3 COM_PowerSpect_CMB-TT-binned_R3.01 (tier 2)"}
+            "reference": "Planck PR3 COM_PowerSpect_CMB-TT-binned_R3.01 (released bandpowers)"}
 
 
-@tier(1)
+@data_kind("catalog")
 @validate_call
 def plot_cmb_map(
     output_dir: Annotated[str, Field(min_length=1, description="Directory for the PNG.")],
@@ -274,7 +274,7 @@ def plot_cmb_map(
 ) -> ArtifactResult:
     """Mollweide (Galactic) PNG of a HEALPix CMB map, with the mask greyed out.
 
-    Use after fetch_cmb_map to show the tier-1 map. Reports the pixel rms inside the mask.
+    Use after fetch_cmb_map to show the component-separated CMB map. Reports the pixel rms inside the mask.
     """
     import healpy as hp
 

@@ -1,4 +1,4 @@
-"""Tier-1 map tools: offline tests (synthetic HEALPix maps, FITS reader) + the reference run.
+"""Component-separated CMB map tools: offline tests (synthetic HEALPix maps, FITS reader) + the reference run.
 
 The real Planck maps are NOT downloaded here (CI is offline); network tests for the IRSA
 URLs live in tests/test_network.py, and the reference hm1 x hm2 measurement from the real
@@ -146,7 +146,7 @@ def test_reference_run_on_real_planck_maps():
 def test_plot_cmb_map(tmp_path):
     mf, kf, *_ = _synthetic(tmp_path, nside=64)
     r = MT.plot_cmb_map(str(tmp_path), str(mf), str(kf))
-    assert r.metadata["data_tier"] == 1
+    assert r.metadata["data_kind"] == "catalog"
     assert 50 < r.metadata["rms_uK"] < 200
     assert Path(r.files[0]).stat().st_size > 20_000
 

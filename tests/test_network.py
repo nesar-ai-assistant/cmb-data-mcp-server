@@ -37,7 +37,7 @@ def test_act_chain_and_triangle(tmp_path):
 
 
 def test_planck_pr3_map_urls_head_and_header():
-    """Tier-1 maps: HEAD sizes match the registry; FITS header (range fetch) is HEALPix nside 2048."""
+    """Component-separated CMB maps: HEAD sizes match the registry; FITS header (range fetch) is HEALPix nside 2048."""
     from tools.maps import io as mio
 
     for comp in ("smica_nosz", "smica"):
