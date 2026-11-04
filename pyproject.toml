@@ -26,6 +26,7 @@ theory = ["camb>=1.5"]  # optional: compute_lcdm_theory_spectrum with custom par
 [tool.mcp-server]
 name = "CMB Data MCP Server"
 skill_prefix = "cmb"
+port = 8012
 instructions_file = "mcp_server/INSTRUCTIONS.md"
 tool_modules = [
     "tools.meta",
